@@ -60,7 +60,7 @@ input_data = pd.DataFrame({
 })
 
 # Make a prediction
-prediction = model.predict(user_input)
+prediction = model.predict(input_data)
 
 # Convert the prediction to a binary result
 prediction_result = "Heart Disease" if prediction[0] > 0.5 else "No Heart Disease"
