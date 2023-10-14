@@ -43,7 +43,7 @@ ca = st.sidebar.slider("Number of Major Vessels:", min_value=0, max_value=3, val
 thal = st.sidebar.slider("Thalassemia Type:", min_value=0, max_value=3, value=2)
 
 # Transform user input into a DataFrame for prediction
-user_input = pd.DataFrame({
+input_data = pd.DataFrame({
     'age': [age],
     'sex': [sex],
     'cp': [cp],
