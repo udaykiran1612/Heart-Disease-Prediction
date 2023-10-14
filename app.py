@@ -1,61 +1,69 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+from sklearn.datasets import load_heart
+from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import accuracy_score
 
-# Load the heart disease dataset
-data = pd.read_csv('heart_disease.csv')
+# Title and description
+st.title("Heart Disease Prediction")
+st.write("This app predicts the presence of heart disease using a Linear Regression model.")
 
-# Split the data into features and target
-X = data.drop('target', axis=1)
-y = data['target']
+# Load the Heart Disease dataset
+data = load_heart()
+X = pd.DataFrame(data.data, columns=data.feature_names)
+y = pd.Series(data.target)
 
-# Train the linear regression model
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+# Create and train a Linear Regression model
 model = LinearRegression()
-model.fit(X, y)
+model.fit(X_train, y_train)
 
-# Create the Streamlit app
-st.title('Heart Disease Prediction App')
+# Make predictions
+y_pred = model.predict(X_test).round()
 
-# Create a sidebar to collect user input
-st.sidebar.header('User Input')
+# Display the accuracy of the model
+accuracy = accuracy_score(y_test, y_pred)
+st.write(f"Model Accuracy: {accuracy * 100:.2f}%")
 
-# Add input fields for each feature
-age = st.sidebar.number_input('Age')
-sex = st.sidebar.selectbox('Sex', ['Male', 'Female'])
-cp = st.sidebar.selectbox('Chest pain type', ['Typical Angina', 'Atypical Angina', 'Non-anginal Pain', 'Asymptomatic'])
-trtbps = st.sidebar.number_input('Resting blood pressure (in mm Hg)')
-chol = st.sidebar.number_input('Cholestoral in mg/dl fetched via BMI sensor')
-fbs = st.sidebar.selectbox('Fasting blood sugar (> 120 mg/dl)', ['True', 'False'])
-restecg = st.sidebar.selectbox('Resting electrocardiographic results', ['Normal', 'ST-T wave normality', 'Left ventricular hypertrophy'])
-thalachh = st.sidebar.number_input('Maximum heart rate achieved')
-oldpeak = st.sidebar.number_input('Previous peak')
-slp = st.sidebar.selectbox('Slope', ['Upsloping', 'Flat', 'Downsloping'])
-caa = st.sidebar.number_input('Number of major vessels')
-thall = st.sidebar.selectbox('Thalium Stress Test result ~ (0,3)', ['3', '2', '6', '0'])
-exng = st.sidebar.selectbox('Exercise induced angina ~ 1 = Yes, 0 = No', ['Yes', 'No'])
+# Sidebar for user input
+st.sidebar.header("User Input")
 
-# Make a prediction if the user clicks the "Predict" button
-if st.sidebar.button('Predict'):
+# Input features
+age = st.sidebar.slider("Age", 29, 77, 55)
+sex = st.sidebar.selectbox("Sex", ["Male", "Female"])
+cp = st.sidebar.slider("Chest Pain Type", 0, 3, 1)
+trestbps = st.sidebar.slider("Resting Blood Pressure", 94, 200, 120)
+chol = st.sidebar.slider("Cholesterol", 126, 564, 250)
+fbs = st.sidebar.selectbox("Fasting Blood Sugar", ["<= 120 mg/dl", "> 120 mg/dl"])
+restecg = st.sidebar.slider("Resting Electrocardiographic Results", 0, 2, 1)
+thalach = st.sidebar.slider("Maximum Heart Rate Achieved", 71, 202, 150)
+exang = st.sidebar.selectbox("Exercise-Induced Angina", ["No", "Yes"])
+oldpeak = st.sidebar.slider("ST Depression", 0.0, 6.2, 1.0)
+slope = st.sidebar.slider("Slope of the Peak Exercise ST Segment", 0, 2, 1)
+ca = st.sidebar.slider("Number of Major Vessels", 0, 4, 2)
+thal = st.sidebar.slider("Thalassemia", 0, 3, 2)
 
-    # Create a dataframe from the user input
-    user_input = pd.DataFrame({
-        'age': [age],
-        'sex': [sex],
-        'cp': [cp],
-        'trtbps': [trtbps],
-        'chol': [chol],
-        'fbs': [fbs],
-        'restecg': [restecg],
-        'thalachh': [thalachh],
-        'oldpeak': [oldpeak],
-        'slp': [slp],
-        'caa': [caa],
-        'thall': [thall],
-        'exng': [exng]
-    })
+# Transform user input into a prediction
+input_data = np.array([[
+    age,
+    0 if sex == "Male" else 1,
+    cp,
+    trestbps,
+    chol,
+    0 if fbs == "<= 120 mg/dl" else 1,
+    restecg,
+    thalach,
+    0 if exang == "No" else 1,
+    oldpeak,
+    slope,
+    ca,
+    thal
+]])
 
-    # Make a prediction
-    prediction = model.predict(user_input)[0]
+prediction = model.predict(input_data)
 
-    # Display the prediction to the user
-    st.write('**Prediction:** {}'.format(prediction))
+st.write(f"Predicted Heart Disease: {'Yes' if prediction[0] == 1 else 'No'}")
